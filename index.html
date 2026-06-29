@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyan Cat Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0f3460;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            text-shadow: 2px 2px #000;
+            font-size: 16px;
+            pointer-events: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="nyanCanvas"></canvas>
+    <div id="instructions">🎵 Non-stop Space Flight 🎵</div>
+
+    <script>
+        const canvas = document.getElementById('nyanCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Resize handler
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Starfield Setup
+        const stars = [];
+        const numStars = 40;
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 3 + 2,
+                speed: Math.random() * 3 + 2,
+                state: Math.floor(Math.random() * 4),
+                counter: Math.floor(Math.random() * 10)
+            });
+        }
+
+        // Rainbow Colors
+        const rainbowColors = ['#ff0000', '#ff9900', '#ffff00', '#33cc00', '#0099ff', '#6633ff'];
+        let tick = 0;
+
+        // Main Animation Loop
+        function animate() {
+            tick++;
+            
+            // 1. Draw Space Background
+            ctx.fillStyle = '#013364';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Draw & Update Stars
+            stars.forEach(star => {
+                star.x -= star.speed;
+                if (star.x < -20) {
+                    star.x = canvas.width + 20;
+                    star.y = Math.random() * canvas.height;
+                }
+
+                // Animate star blinking/shapes
+                star.counter++;
+                if (star.counter > 15) {
+                    star.state = (star.state + 1) % 4;
+                    star.counter = 0;
+                }
+
+                ctx.fillStyle = '#ffffff';
+                // Retro cross-shaped star rendering based on state
+                if (star.state === 0) {
+                    ctx.fillRect(star.x, star.y, star.size, star.size);
+                } else if (star.state === 1) {
+                    ctx.fillRect(star.x - star.size, star.y, star.size * 3, star.size);
+                    ctx.fillRect(star.x, star.y - star.size, star.size, star.size * 3);
+                } else {
+                    ctx.fillRect(star.x, star.y, star.size * 1.5, star.size * 1.5);
+                }
+            });
+
+            // Cat position (Centered vertically, slightly left of middle)
+            const catX = canvas.width * 0.4;
+            const catY = canvas.height * 0.45 + Math.sin(tick * 0.15) * 12; // Floating bounce effect
+            const isLegFrameB = Math.floor(tick / 6) % 2 === 0;
+
+            // 3. Draw Waving Rainbow Trail
+            const stripeHeight = 9;
+            const waveLength = 45;
+            const waveAmp = 10;
+
+            for (let x = 0; x < catX + 20; x += 5) {
+                // Generate the wave offset synced with the cat's floating cadence
+                const yOffset = Math.sin((x / waveLength) - (tick * 0.2)) * waveAmp;
+                
+                rainbowColors.forEach((color, index) => {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x, catY + 8 + (index * stripeHeight) + yOffset, 6, stripeHeight);
+                });
+            }
+
+            // 4. Draw Pixel Art Nyan Cat (Scale factor = 3 for retro chunky pixels)
+            ctx.save();
+            ctx.translate(catX, catY);
+            ctx.scale(3, 3);
+
+            // Legs Animation Switch
+            ctx.fillStyle = '#000000';
+            if (isLegFrameB) {
+                // Leg set A
+                ctx.fillRect(2, 21, 3, 2); ctx.fillRect(7, 21, 3, 2);
+                ctx.fillRect(19, 21, 3, 2); ctx.fillRect(25, 21, 3, 2);
+            } else {
+                // Leg set B
+                ctx.fillRect(4, 21, 3, 2); ctx.fillRect(9, 21, 3, 2);
+                ctx.fillRect(17, 21, 3, 2); ctx.fillRect(23, 21, 3, 2);
+            }
+
+            // Tail
+            ctx.fillStyle = '#999999';
+            const tailOffset = isLegFrameB ? 0 : -2;
+            ctx.fillRect(-4, 10 + tailOffset, 5, 4);
+
+            // Pop-Tart Body Outline
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 2, 31, 18);
+            
+            // Pop-Tart Crust
+            ctx.fillStyle = '#ffcc99';
+            ctx.fillRect(1, 3, 29, 16);
+
+            // Pop-Tart Frosting
+            ctx.fillStyle = '#ff99ff
